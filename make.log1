@@ -1,0 +1,6 @@
+ad3 : processing ww3_bounc 
+      11 errors found, see /ichec/home/users/purdyd/ww3/trunk/model/tmp/ww3_bounc.l
+      Linking ww3_bounc
+      *** file ww3_bounc.o not found ***
+*** Missing object files ***
+make: *** [/ichec/home/users/purdyd/ww3/trunk/model/exe/ww3_bounc] Error 3
