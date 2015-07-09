@@ -739,6 +739,7 @@
 !
 !     Process queue
 !
+!/OMPG/!$OMP DO PRIVATE(IPP) FIRSTPRIVATE(IP)
           DO I=1, NEIGH(9,IP)
             IPP = NEIGH(I,IP)
 !
@@ -772,7 +773,8 @@
             END DO
 !
           END DO
-!
+!/OMPG/!$OMP END DO
+
 ! 1.c Check for mask values in IMO to identify new basins
 !
         M = MSAVE
