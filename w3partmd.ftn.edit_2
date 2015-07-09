@@ -679,7 +679,7 @@
 ! 1.a Pixels at level IH
 !
 	DO
-          IF(IMI(M)) .EQ. IH) THEN
+          IF(IMI(M) .EQ. IH) THEN
               M = M + 1
           ELSE
               COUNT = M - MSAVE
