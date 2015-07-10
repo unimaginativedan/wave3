@@ -738,8 +738,8 @@
             END IF
 !
 !     Process queue
-!
-!/OMPG/!$OMP DO PRIVATE(IPP) FIRSTPRIVATE(IP)
+!/OMPG/!$OMP PARALLEL PRIVATE(IPP) 
+!/OMPG/!$OMP DO 
           DO I=1, NEIGH(9,IP)
             IPP = NEIGH(I,IP)
 !
@@ -771,9 +771,10 @@
               END IF
 !
             END DO
-!
-          END DO
 !/OMPG/!$OMP END DO
+!/OMPG/!$OMP END PARALLEL
+          END DO
+
 
 ! 1.c Check for mask values in IMO to identify new basins
 !
