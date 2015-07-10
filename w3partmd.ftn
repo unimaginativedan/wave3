@@ -706,9 +706,9 @@
             IPP    = NEIGH(I,IP)
             IF ( (IMO(IPP).GT.0) .OR. (IMO(IPP).EQ.IWSHED) ) THEN
                 IMD(IP) = 1
-!/OMPG/!$OMP CRITICAL
+!/OMPG/!$OMP CRITICAL queue_op
                 CALL FIFO_ADD (IP)
-!/OMPG/!$OMP END CRITICAL
+!/OMPG/!$OMP END CRITICAL queue_op
                 EXIT
               END IF
             END DO
@@ -766,8 +766,9 @@
               ELSE IF ( (IMO(IPP).EQ.MASK) .AND. (IMD(IPP).EQ.0) ) THEN
 !
                  IMD(IPP) = IC_DIST + 1
+		 !/OMPG/!$OMP CRITICAL queu_op 
                  CALL FIFO_ADD (IPP)
-!
+!		 !/OMPG/!$OMP END CRITICAL queu_op 
               END IF
 !
             END DO
