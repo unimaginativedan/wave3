@@ -706,31 +706,17 @@
  IQ_COUNT = M - MSAVE
 
         IC_DIST = 1
-        CALL FIFO_ADD (IFICT_PIXEL)
+!        CALL FIFO_ADD (IFICT_PIXEL)
 !
 !/OMPG/!$OMP DO PRIVATE(IP, IPP, I)  
         DO II = MSAVE, M
 !-----!   CALL FIFO_FIRST (IP)
 	  IP = IQ(II)
 !
-!     Check for end of processing
-!
-          IF ( IP .EQ. IFICT_PIXEL ) THEN
-!              CALL FIFO_EMPTY (IEMPTY)
-!              IF ( IEMPTY .EQ. 1 ) THEN
-!                  EXIT
-!               ELSE
-!/OMPG/!$OMP CRITICAL
-                  CALL FIFO_ADD (IFICT_PIXEL)
-		  IC_DIST = IC_DIST + 1
-!/OMPG/!$OMP END CRITICAL                  
-                  CALL FIFO_FIRST (IP)
-!                END IF
-           
 !
 !     Process queue
 !
-	ELSE
+
           DO I=1, NEIGH(9,IP)
             IPP = NEIGH(I,IP)
 !
@@ -766,11 +752,12 @@
 
             END DO
 !
-	   END IF
+!	   END IF
           END DO
 !/OMPG/!$OMP END DO
 !
-IQ_START=MSAVE+1
+
+IQ_START=MSAVE+IQ_COUNT
 
 DO
           CALL FIFO_FIRST (IP)
