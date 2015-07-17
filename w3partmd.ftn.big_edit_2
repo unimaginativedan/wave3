@@ -703,18 +703,17 @@
 !
 ! 1.b Process the queue
 
-! IQ_COUNT = M - MSAVE
+ IQ_COUNT = M - MSAVE
 
         IC_DIST = 1
 
 !
-!IQ_START=IQ_END+1
+IQ_START=IQ_END+1
 !/OMPG/!$OMP DO PRIVATE(IP, IPP, I)  
         DO II = IQ_START, IQ_END
 
-!/OMPG/!$OMP CRITICAL                  
-	 CALL FIFO_FIRST(IP)
-!/OMPG/!$OMP END CRITICAL                  
+	  IP = IQ(II)
+
 !
 !     Process queue
 !
@@ -759,10 +758,59 @@
 !/OMPG/!$OMP END DO
 !
 
-!IQ_START=MSAVE+IQ_COUNT
+IQ_START=MSAVE+IQ_COUNT
 
-
-
+DO
+          CALL FIFO_FIRST (IP)
+!
+!     Check for end of processing
+!
+          IF ( IP .EQ. IFICT_PIXEL ) THEN
+              CALL FIFO_EMPTY (IEMPTY)
+              IF ( IEMPTY .EQ. 1 ) THEN
+                  EXIT
+                ELSE
+                  CALL FIFO_ADD (IFICT_PIXEL)
+                  IC_DIST = IC_DIST + 1
+                  CALL FIFO_FIRST (IP)
+                END IF
+            END IF
+!
+!     Process queue
+!
+          DO I=1, NEIGH(9,IP)
+            IPP = NEIGH(I,IP)
+!
+!     Check for labeled watersheds or basins
+!
+            IF ( (IMD(IPP).LT.IC_DIST) .AND. ( (IMO(IPP).GT.0) .OR.  &
+                 (IMO(IPP).EQ.IWSHED))) THEN
+!
+                IF ( IMO(IPP) .GT. 0 ) THEN
+!
+                    IF ((IMO(IP) .EQ. MASK) .OR. (IMO(IP) .EQ. &
+                        IWSHED)) THEN
+                        IMO(IP) = IMO(IPP)
+                      ELSE IF (IMO(IP) .NE. IMO(IPP)) THEN
+                        IMO(IP) = IWSHED
+                      END IF
+!
+                  ELSE IF (IMO(IP) .EQ. MASK) THEN
+!
+                    IMO(IP) = IWSHED
+!
+                  END IF
+!
+              ELSE IF ( (IMO(IPP).EQ.MASK) .AND. (IMD(IPP).EQ.0) ) THEN
+!
+                 IMD(IPP) = IC_DIST + 1
+                 CALL FIFO_ADD (IPP)
+!
+              END IF
+!
+            END DO
+!
+          END DO
 ! 1.c Check for mask values in IMO to identify new basins
 !
 
