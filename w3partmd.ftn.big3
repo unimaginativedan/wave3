@@ -640,8 +640,8 @@
       INTEGER                 :: MASK, INIT, IWSHED, IMD(NSPEC),      &
                                  IC_LABEL, IFICT_PIXEL, M, IH, MSAVE, &
                                  IP, I, IPP, IC_DIST, IEMPTY, IPPP,   &
-                                 JL, JN, IPT, J, II, IIP, IIPP
-      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END
+                                 JL, JN, IPT, J, II
+      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END, IQ_COUNT
 !/S      INTEGER, SAVE           :: IENT = 0
       REAL                    :: ZPMAX, EP1, DIFF
 !/
@@ -702,91 +702,23 @@
           END DO
 !
 ! 1.b Process the queue
-!
+
+! IQ_COUNT = M - MSAVE
+
         IC_DIST = 1
-!        CALL FIFO_ADD (IFICT_PIXEL)
-!
 
+!
+!IQ_START=IQ_END+1
+!/OMPG/!$OMP DO PRIVATE(IP, IPP, I)  
+        DO II = IQ_START, IQ_END
 
-!/OMPG/!$OMP PARALLEL
-!/OMPG/!$OMP DO PRIVATE(II, IIP, IIPP)
-        DO I = IQ_START, IQ_END
-!/OMPG/!$OMP CRITICAL 
-         CALL FIFO_FIRST (IIP)
-!/OMPG/!$OMP END CRITICAL
-!
-!     Check for end of processing
-!
+!/OMPG/!$OMP CRITICAL                  
+	 CALL FIFO_FIRST(IP)
+!/OMPG/!$OMP END CRITICAL                  
 !
 !     Process queue
 !
-!IF(IP .NE. IFICT_PIXEL) THEN
-          DO II=1, NEIGH(9,IIP)
-            IIPP = NEIGH(II,IIP)
-!
-!     Check for labeled watersheds or basins
-!
-            IF ( (IMD(IIPP).LT.IC_DIST) .AND. ( (IMO(IIPP).GT.0) .OR.  &
-                 (IMO(IIPP).EQ.IWSHED))) THEN
-!
-                IF ( IMO(IIPP) .GT. 0 ) THEN
-!
-                    IF ((IMO(IIP) .EQ. MASK) .OR. (IMO(IIP) .EQ. &
-                        IWSHED)) THEN
-!/OMPG/!$OMP CRITICAL
-                        IMO(IIP) = IMO(IIPP)
-!/OMPG/!$OMP END CRITICAL                      
-	     	 ELSE IF (IMO(IIP) .NE. IMO(IIPP)) THEN
-!/OMPG/!$OMP CRITICAL
-		        IMO(IIP) = IWSHED
-!/OMPG/!$OMP END CRITICAL
-                      END IF
-!
-                  ELSE IF (IMO(IIP) .EQ. MASK) THEN
-!
-!/OMPG/!$OMP CRITICAL
-                    IMO(IIP) = IWSHED
-!/OMPG/!$OMP END CRITICAL
-!
-                  END IF
-!
-              ELSE IF ( (IMO(IIPP).EQ.MASK) .AND. (IMD(IIPP).EQ.0) ) THEN
-!
-!/OMPG/!$OMP CRITICAL
-                 IMD(IIPP) = IC_DIST + 1
-		 CALL FIFO_ADD (IIPP)
-!/OMPG/!$OMP END CRITICAL
-!
-              END IF
-!
-            END DO
-!END IF
-!
-          END DO
-!/OMPG/!$OMP END DO
-!/OMPG/!$OMP END PARALLEL
 
-CALL FIFO_ADD(IFICT_PIXEL) 
-CALL FIFO_EMPTY(IEMPTY)
-IF(IEMPTY .EQ. 0) THEN
-        DO
-          CALL FIFO_FIRST (IP)
-!
-!     Check for end of processing
-!
-          IF ( IP .EQ. IFICT_PIXEL ) THEN
-              CALL FIFO_EMPTY (IEMPTY)
-              IF ( IEMPTY .EQ. 1 ) THEN
-                  EXIT
-                ELSE
-                  CALL FIFO_ADD (IFICT_PIXEL)
-                  IC_DIST = IC_DIST + 1
-                  CALL FIFO_FIRST (IP)
-                END IF
-            END IF
-!
-!     Process queue
-!
           DO I=1, NEIGH(9,IP)
             IPP = NEIGH(I,IP)
 !
@@ -813,17 +745,28 @@ IF(IEMPTY .EQ. 0) THEN
               ELSE IF ( (IMO(IPP).EQ.MASK) .AND. (IMD(IPP).EQ.0) ) THEN
 !
                  IMD(IPP) = IC_DIST + 1
-                 CALL FIFO_ADD (IPP)
+!/OMPG/!$OMP CRITICAL                  
+		 CALL FIFO_ADD (IPP)
+!/OMPG/!$OMP END CRITICAL                  
 !
               END IF
-!
+	     
+
             END DO
 !
+!	   END IF
           END DO
-END IF
+!/OMPG/!$OMP END DO
 !
+
+!IQ_START=MSAVE+IQ_COUNT
+
+
+
 ! 1.c Check for mask values in IMO to identify new basins
 !
+
+
         M = MSAVE
 !
         DO
