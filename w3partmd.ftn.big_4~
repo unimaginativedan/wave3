@@ -642,7 +642,7 @@
                                  IC_LABEL, IFICT_PIXEL, M, IH, MSAVE, &
                                  IP, I, IPP, IC_DIST, IEMPTY, IPPP,   &
                                  JL, JN, IPT, J, II, IIP, IIPP, BUFF
-      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END, IQ_COUNT
+      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END
 !/S      INTEGER, SAVE           :: IENT = 0
       REAL                    :: ZPMAX, EP1, DIFF
 !/
@@ -708,21 +708,22 @@
 !        CALL FIFO_ADD (IFICT_PIXEL)
 !
 
-IQ_COUNT = IQ_END - IQ_START
+
 !/OMPG/!$OMP PARALLEL
 !/OMPG/!$OMP DO PRIVATE(II, IIP, IIPP) 
-        DO I = 1, IQ_COUNT
+        DO I = IQ_START, IQ_END
 !/OMPG/!$OMP CRITICAL 
-        CALL FIFO_FIRST (IIP)
+         CALL FIFO_FIRST (IIP)
+	 BUFF = NEIGH(9, IIP)
 !/OMPG/!$OMP END CRITICAL
 !
-!IIP = IQ((IQ_START-1)+I)
+
 !
 !
 !     Process queue
 !
 IF(IIP .NE. IFICT_PIXEL) THEN
-          DO II=1, NEIGH(9, IIP)
+          DO II=1, BUFF
             IIPP = NEIGH(II,IIP)
 !
 !     Check for labeled watersheds or basins
@@ -766,9 +767,6 @@ END IF
           END DO
 !/OMPG/!$OMP END DO
 !/OMPG/!$OMP END PARALLEL
-
-
-
 
 CALL FIFO_ADD(IFICT_PIXEL) 
 CALL FIFO_EMPTY(IEMPTY)
