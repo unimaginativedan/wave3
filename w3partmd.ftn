@@ -645,8 +645,8 @@
       INTEGER                 :: MASK, INIT, IWSHED, IMD(NSPEC),      &
                                  IC_LABEL, IFICT_PIXEL, M, IH, MSAVE, &
                                  IP, I, IPP, IC_DIST, IEMPTY, IPPP,   &
-                                 JL, JN, IPT, J, II, COUNT
-      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END
+                                 JL, JN, IPT, J, II, COUNT, IIP, IIPP
+      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END, IQ_COUNT
 !/S      INTEGER, SAVE           :: IENT = 0
       REAL                    :: ZPMAX, EP1, DIFF
 !/
@@ -719,8 +719,70 @@
 ! 1.b Process the queue
 !
         IC_DIST = 1
-        CALL FIFO_ADD (IFICT_PIXEL)
+
 !
+
+IQ_COUNT = IQ_END - IQ_START
+
+!/OMPG/!$OMP DO PRIVATE(II, IIP, IIPP) 
+        DO I = 1, IQ_COUNT
+	IIP = IQ((IQ_START-1)+I)
+!
+!
+!     Process queue
+!
+
+          DO II=1, NEIGH(9, IIP)
+            IIPP = NEIGH(II,IIP)
+!
+!     Check for labeled watersheds or basins
+!
+            IF ( (IMD(IIPP).LT.IC_DIST) .AND. ( (IMO(IIPP).GT.0) .OR.  &
+                 (IMO(IIPP).EQ.IWSHED))) THEN
+!
+                IF ( IMO(IIPP) .GT. 0 ) THEN
+!
+                    IF ((IMO(IIP) .EQ. MASK) .OR. (IMO(IIP) .EQ. &
+                        IWSHED)) THEN
+
+                        IMO(IIP) = IMO(IIPP)
+
+	     	 ELSE IF (IMO(IIP) .NE. IMO(IIPP)) THEN
+
+		        IMO(IIP) = IWSHED
+
+                      END IF
+!
+                  ELSE IF (IMO(IIP) .EQ. MASK) THEN
+!
+
+                    IMO(IIP) = IWSHED
+
+!
+                  END IF
+!
+              ELSE IF ( (IMO(IIPP).EQ.MASK) .AND. (IMD(IIPP).EQ.0) ) THEN
+!
+!/OMPG/!$OMP CRITICAL
+                 IMD(IIPP) = IC_DIST + 1
+		 CALL FIFO_ADD (IIPP)
+!/OMPG/!$OMP END CRITICAL
+!
+              END IF
+!
+            END DO
+
+!
+          END DO
+!/OMPG/!$OMP END DO
+
+
+IQ_START = IQ_START+IQ_COUNT
+
+CALL FIFO_ADD(IFICT_PIXEL) 
+CALL FIFO_EMPTY(IEMPTY)
+
+IF(IEMPTY .EQ. 0) THEN
         DO
           CALL FIFO_FIRST (IP)
 !
@@ -738,7 +800,7 @@
             END IF
 !
 !     Process queue
-
+!
           DO I=1, NEIGH(9,IP)
             IPP = NEIGH(I,IP)
 !
@@ -765,15 +827,16 @@
               ELSE IF ( (IMO(IPP).EQ.MASK) .AND. (IMD(IPP).EQ.0) ) THEN
 !
                  IMD(IPP) = IC_DIST + 1
-
                  CALL FIFO_ADD (IPP)
-
+!
               END IF
 !
             END DO
-
+!
           END DO
+END IF
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! 1.c Check for mask values in IMO to identify new basins
 !
