@@ -642,7 +642,7 @@
                                  IC_LABEL, IFICT_PIXEL, M, IH, MSAVE, &
                                  IP, I, IPP, IC_DIST, IEMPTY, IPPP,   &
                                  JL, JN, IPT, J, II, IIP, IIPP, BUFF
-      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END
+      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END, IQ_COUNT
 !/S      INTEGER, SAVE           :: IENT = 0
       REAL                    :: ZPMAX, EP1, DIFF
 !/
@@ -708,22 +708,17 @@
 !        CALL FIFO_ADD (IFICT_PIXEL)
 !
 
+IQ_COUNT = IQ_END - IQ_START
 
-!/OMPG/!$OMP PARALLEL
 !/OMPG/!$OMP DO PRIVATE(II, IIP, IIPP) 
-        DO I = IQ_START, IQ_END
-!/OMPG/!$OMP CRITICAL 
-         CALL FIFO_FIRST (IIP)
-	 BUFF = NEIGH(9, IIP)
-!/OMPG/!$OMP END CRITICAL
-!
-
+        DO I = 1, IQ_COUNT
+	IIP = IQ((IQ_START-1)+I)
 !
 !
 !     Process queue
 !
-IF(IIP .NE. IFICT_PIXEL) THEN
-          DO II=1, BUFF
+
+          DO II=1, NEIGH(9, IIP)
             IIPP = NEIGH(II,IIP)
 !
 !     Check for labeled watersheds or basins
@@ -735,20 +730,20 @@ IF(IIP .NE. IFICT_PIXEL) THEN
 !
                     IF ((IMO(IIP) .EQ. MASK) .OR. (IMO(IIP) .EQ. &
                         IWSHED)) THEN
-!/OMPG/!$OMP CRITICAL
+
                         IMO(IIP) = IMO(IIPP)
-!/OMPG/!$OMP END CRITICAL                      
+
 	     	 ELSE IF (IMO(IIP) .NE. IMO(IIPP)) THEN
-!/OMPG/!$OMP CRITICAL
+
 		        IMO(IIP) = IWSHED
-!/OMPG/!$OMP END CRITICAL
+
                       END IF
 !
                   ELSE IF (IMO(IIP) .EQ. MASK) THEN
 !
-!/OMPG/!$OMP CRITICAL
+
                     IMO(IIP) = IWSHED
-!/OMPG/!$OMP END CRITICAL
+
 !
                   END IF
 !
@@ -762,14 +757,17 @@ IF(IIP .NE. IFICT_PIXEL) THEN
               END IF
 !
             END DO
-END IF
+
 !
           END DO
 !/OMPG/!$OMP END DO
-!/OMPG/!$OMP END PARALLEL
+
+
+IQ_START = IQ_START+IQ_COUNT
 
 CALL FIFO_ADD(IFICT_PIXEL) 
 CALL FIFO_EMPTY(IEMPTY)
+
 IF(IEMPTY .EQ. 0) THEN
         DO
           CALL FIFO_FIRST (IP)
