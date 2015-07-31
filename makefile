@@ -547,7 +547,7 @@ $(aPo)/w3iobcmd.o : w3iobcmd.ftn  $(aPo)/w3cspcmd.o $(aPo)/w3gdatmd.o $(aPo)/w3w
 $(aPo)/w3iogomd.o : w3iogomd.ftn  $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/constants.o $(aPo)/w3servmd.o
 	@$(aPb)/ad3 w3iogomd
  
-$(aPo)/w3iogrmd.o : w3iogrmd.ftn  $(aPo)/w3gdatmd.o $(aPo)/w3odatmd.o $(aPo)/w3src3md.o $(aPo)/w3snl1md.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3dispmd.o
+$(aPo)/w3iogrmd.o : w3iogrmd.ftn  $(aPo)/w3gdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/w3src3md.o $(aPo)/w3snl1md.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3dispmd.o
 	@$(aPb)/ad3 w3iogrmd
  
 $(aPo)/w3iopomd.o : w3iopomd.ftn  $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3gsrumd.o $(aPo)/w3triamd.o
@@ -628,10 +628,10 @@ $(aPo)/wmgridmd.o : wmgridmd.ftn  $(aPo)/w3gdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3o
 $(aPo)/wminiomd.o : wminiomd.ftn  $(aPo)/w3updtmd.o $(aPo)/w3cspcmd.o $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/w3iobcmd.o $(aPo)/w3servmd.o $(aPo)/w3timemd.o $(aPo)/wmmdatmd.o
 	@$(aPb)/ad3 wminiomd
  
-$(aPo)/wminitmd.o : wminitmd.ftn  $(aPo)/w3initmd.o $(aPo)/w3fldsmd.o $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/w3idatmd.o $(aPo)/w3iogrmd.o $(aPo)/w3iogomd.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3timemd.o $(aPo)/wmmdatmd.o $(aPo)/wmgridmd.o $(aPo)/wmunitmd.o $(aPo)/wminiomd.o $(aPo)/wmiopomd.o
+$(aPo)/wminitmd.o : wminitmd.ftn  $(aPo)/w3initmd.o $(aPo)/w3fldsmd.o $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/w3idatmd.o $(aPo)/w3iogrmd.o $(aPo)/w3iogomd.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3timemd.o $(aPo)/w3gsrumd.o $(aPo)/wmmdatmd.o $(aPo)/wmgridmd.o $(aPo)/wmunitmd.o $(aPo)/wminiomd.o $(aPo)/wmiopomd.o
 	@$(aPb)/ad3 wminitmd
  
-$(aPo)/wmiopomd.o : wmiopomd.ftn  $(aPo)/w3cspcmd.o $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/w3iopomd.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3gsrumd.o $(aPo)/w3triamd.o $(aPo)/wmmdatmd.o
+$(aPo)/wmiopomd.o : wmiopomd.ftn  $(aPo)/w3initmd.o $(aPo)/w3cspcmd.o $(aPo)/w3gdatmd.o $(aPo)/w3wdatmd.o $(aPo)/w3adatmd.o $(aPo)/w3odatmd.o $(aPo)/w3iopomd.o $(aPo)/constants.o $(aPo)/w3servmd.o $(aPo)/w3gsrumd.o $(aPo)/w3triamd.o $(aPo)/wmmdatmd.o
 	@$(aPb)/ad3 wmiopomd
  
 $(aPo)/wmmdatmd.o : wmmdatmd.ftn  $(aPo)/w3gdatmd.o $(aPo)/w3odatmd.o $(aPo)/w3servmd.o
