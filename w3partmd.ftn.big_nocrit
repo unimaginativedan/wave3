@@ -763,10 +763,10 @@ IQ_COUNT = IQ_END - IQ_START
 !
               ELSE IF ( (IMO(IIPP).EQ.MASK) .AND. (IMD(IIPP).EQ.0) ) THEN
 !
-
+!/OMPG/!$OMP CRITICAL
                  IMD(IIPP) = IC_DIST + 1
 		 CALL FIFO_ADD (IIPP)
-
+!/OMPG/!$OMP END CRITICAL
 !
               END IF
 !
