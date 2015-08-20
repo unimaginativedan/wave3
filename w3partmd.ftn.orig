@@ -357,10 +357,15 @@
 ! -------------------------------------------------------------------- /
 ! 1.  Occurences per height
 !
+
       NUMV   = 0
+
       DO I=1, NSPEC
         NUMV(IMI(I)) = NUMV(IMI(I)) + 1
         END DO
+
+
+
 !
 ! -------------------------------------------------------------------- /
 ! 2.  Starting address per height
@@ -640,8 +645,8 @@
       INTEGER                 :: MASK, INIT, IWSHED, IMD(NSPEC),      &
                                  IC_LABEL, IFICT_PIXEL, M, IH, MSAVE, &
                                  IP, I, IPP, IC_DIST, IEMPTY, IPPP,   &
-                                 JL, JN, IPT, J
-      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END
+                                 JL, JN, IPT, J, II, COUNT, IIP, IIPP
+      INTEGER                 :: IQ(NSPEC), IQ_START, IQ_END, IQ_COUNT
 !/S      INTEGER, SAVE           :: IENT = 0
       REAL                    :: ZPMAX, EP1, DIFF
 !/
@@ -673,39 +678,111 @@
 !
 ! 1.a Pixels at level IH
 !
-        DO
-          IP     = IND(M)
-          IF ( IMI(IP) .NE. IH ) EXIT
+	DO
+          IF(IMI(M) .EQ. IH) THEN
+              M = M + 1
+          ELSE
+              COUNT = M - MSAVE
+              M = MSAVE
+              EXIT
+          END IF
+        END DO
+
+
+
+!/OMPG/!$OMP DO PRIVATE(I,IP,IPP)
+        DO II=1, COUNT
+          IP     = IND(II)
 !
-!     Flag the point, if it stays flagge, it is a separate minimum.
+!     Flag the point, if it stays flagged, it is a separate minimum.
 !
           IMO(IP) = MASK
 !
 !     Consider neighbors. If there is neighbor, set distance and add
 !     to queue.
 !
+!
           DO I=1, NEIGH(9,IP)
             IPP    = NEIGH(I,IP)
             IF ( (IMO(IPP).GT.0) .OR. (IMO(IPP).EQ.IWSHED) ) THEN
                 IMD(IP) = 1
+
                 CALL FIFO_ADD (IP)
+
                 EXIT
               END IF
             END DO
 !
-          IF ( M+1 .GT. NSPEC ) THEN
-              EXIT
-            ELSE
-              M = M + 1
-            END IF
-!
           END DO
-!
+!/OMPG/!$OMP END DO
+
 ! 1.b Process the queue
 !
         IC_DIST = 1
-        CALL FIFO_ADD (IFICT_PIXEL)
+
 !
+
+IQ_COUNT = IQ_END - IQ_START
+
+!/OMPG/!$OMP DO PRIVATE(II, IIP, IIPP) 
+        DO I = 1, IQ_COUNT
+	IIP = IQ((IQ_START-1)+I)
+!
+!
+!     Process queue
+!
+
+          DO II=1, NEIGH(9, IIP)
+            IIPP = NEIGH(II,IIP)
+!
+!     Check for labeled watersheds or basins
+!
+            IF ( (IMD(IIPP).LT.IC_DIST) .AND. ( (IMO(IIPP).GT.0) .OR.  &
+                 (IMO(IIPP).EQ.IWSHED))) THEN
+!
+                IF ( IMO(IIPP) .GT. 0 ) THEN
+!
+                    IF ((IMO(IIP) .EQ. MASK) .OR. (IMO(IIP) .EQ. &
+                        IWSHED)) THEN
+
+                        IMO(IIP) = IMO(IIPP)
+
+	     	 ELSE IF (IMO(IIP) .NE. IMO(IIPP)) THEN
+
+		        IMO(IIP) = IWSHED
+
+                      END IF
+!
+                  ELSE IF (IMO(IIP) .EQ. MASK) THEN
+!
+
+                    IMO(IIP) = IWSHED
+
+!
+                  END IF
+!
+              ELSE IF ( (IMO(IIPP).EQ.MASK) .AND. (IMD(IIPP).EQ.0) ) THEN
+!
+!/OMPG/!$OMP CRITICAL
+                 IMD(IIPP) = IC_DIST + 1
+		 CALL FIFO_ADD (IIPP)
+!/OMPG/!$OMP END CRITICAL
+!
+              END IF
+!
+            END DO
+
+!
+          END DO
+!/OMPG/!$OMP END DO
+
+
+IQ_START = IQ_START+IQ_COUNT
+
+CALL FIFO_ADD(IFICT_PIXEL) 
+CALL FIFO_EMPTY(IEMPTY)
+
+IF(IEMPTY .EQ. 0) THEN
         DO
           CALL FIFO_FIRST (IP)
 !
@@ -757,11 +834,15 @@
             END DO
 !
           END DO
-!
+END IF
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ! 1.c Check for mask values in IMO to identify new basins
 !
         M = MSAVE
 !
+
         DO
           IP     = IND(M)
           IF ( IMI(IP) .NE. IH ) EXIT
@@ -802,6 +883,7 @@
 !
           END DO
 !
+
         END DO
 !
 ! -------------------------------------------------------------------- /
